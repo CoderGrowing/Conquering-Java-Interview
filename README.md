@@ -1,6 +1,16 @@
-# Java 常见面试题及答案
+<!-- GFM-TOC -->
+* [JDK 和 JRE 有什么区别？](#JDK 和 JRE 有什么区别？)
+* [equals 和 == 有什么区别？](#equals 和 == 有什么区别？)
+* [为什么重写 equals 方法必须重写 hashcode 方法？](#为什么重写 equals 方法必须重写 hashcode 方法？)
+* [String 为何不可变？如何实现的不可变？](#String 为何不可变？如何实现的不可变？)
+* [StringBuilder 和 StringBuffer 有什么区别？应用场景？](#StringBuilder 和 StringBuffer 有什么区别？应用场景？)
+* [Xmx 和 Xms如何使用？](#Xmx 和 Xms如何使用？)
+* [ArrayList 和 LinkedList 的区别？](#ArrayList 和 LinkedList 的区别？)
+* [什么是多态？如何体现多态？](#什么是多态？如何体现多态？)
+<!-- GFM-TOC -->
 
-[TOC]
+
+# Java 常见面试题及答案
 
 # 一、Java 基础
 
