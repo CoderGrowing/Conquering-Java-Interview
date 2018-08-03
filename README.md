@@ -1,12 +1,13 @@
 <!-- GFM-TOC -->
-* [JDK 和 JRE 有什么区别？](#JDK 和 JRE 有什么区别？)
-* [equals 和 == 有什么区别？](#equals 和 == 有什么区别？)
-* [为什么重写 equals 方法必须重写 hashcode 方法？](#为什么重写 equals 方法必须重写 hashcode 方法？)
-* [String 为何不可变？如何实现的不可变？](#String 为何不可变？如何实现的不可变？)
-* [StringBuilder 和 StringBuffer 有什么区别？应用场景？](#StringBuilder 和 StringBuffer 有什么区别？应用场景？)
-* [Xmx 和 Xms如何使用？](#Xmx 和 Xms如何使用？)
-* [ArrayList 和 LinkedList 的区别？](#ArrayList 和 LinkedList 的区别？)
-* [什么是多态？如何体现多态？](#什么是多态？如何体现多态？)
+* [Java 常见面试题及答案](#java-常见面试题及答案)
+    * [JDK 和 JRE 有什么区别？](#jdk-和-jre-有什么区别)
+    * [equals 和 == 有什么区别？](#equals-和--有什么区别)
+    * [为什么重写 equals 方法必须重写 hashCode 方法？](#为什么重写-equals方法必须重写hashcode方法)
+    * [String 为何不可变？如何实现的不可变？](#string-为何不可变如何实现的不可变)
+    * [StringBuilder 和 StringBuffer 有什么区别？应用场景？](#stringbuilder-和-stringbuffer-有什么区别应用场景)
+    * [Xmx 和 Xms如何使用？](#xmx-和-xms如何使用)
+    * [ArrayList 和 LinkedList 的区别？](#arrayList-和-linkedList-的区别)
+    * [什么是多态？如何体现多态？](#什么是多态如何体现多态)
 <!-- GFM-TOC -->
 
 
@@ -86,7 +87,7 @@ public boolean equals(Object anObject) {
 
 对于 equals 方法，如果没有对 equals 方法进行重写，则比较的是引用类型的变量所指向的对象的地址；重写过的 equals 方法比较的一般是对象的值。
 
-## 为什么重写 equals 方法必须重写 hashcode 方法？
+## 为什么重写 equals 方法必须重写 hashCode 方法？
 
 默认的 hashCode 方法会利用对象的地址来计算 hashcode 值，不同对象的 hashcode 值是不一样的。 
 
