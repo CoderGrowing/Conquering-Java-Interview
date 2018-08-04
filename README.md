@@ -1,13 +1,20 @@
 <!-- GFM-TOC -->
 * [Java 常见面试题及答案](#java-常见面试题及答案)
+* [一、Java 基础](#一java-基础)
     * [JDK 和 JRE 有什么区别？](#jdk-和-jre-有什么区别)
     * [equals 和 == 有什么区别？](#equals-和--有什么区别)
-    * [为什么重写 equals 方法必须重写 hashCode 方法？](#为什么重写-equals方法必须重写hashcode方法)
+    * [为什么重写 equals 方法必须重写 hashCode 方法？](#为什么重写-equals-方法必须重写-hashcode-方法)
     * [String 为何不可变？如何实现的不可变？](#string-为何不可变如何实现的不可变)
     * [StringBuilder 和 StringBuffer 有什么区别？应用场景？](#stringbuilder-和-stringbuffer-有什么区别应用场景)
-    * [Xmx 和 Xms如何使用？](#xmx-和-xms如何使用)
-    * [ArrayList 和 LinkedList 的区别？](#arrayList-和-linkedList-的区别)
+    * [Xmx 和 Xms 如何使用？](#xmx-和-xms-如何使用)
+    * [ArrayList 和 LinkedList 的区别？](#arraylist-和-linkedlist-的区别)
     * [什么是多态？如何体现多态？](#什么是多态如何体现多态)
+* [二、JMM 与并发](#二jmm-与并发)
+* [三、JVM](#三jvm)
+* [四、框架](#四框架)
+* [五、数据库](#五数据库)
+* [六、算法](#六算法)
+* [七、其他](#七其他)
 <!-- GFM-TOC -->
 
 
@@ -87,7 +94,7 @@ public boolean equals(Object anObject) {
 
 对于 equals 方法，如果没有对 equals 方法进行重写，则比较的是引用类型的变量所指向的对象的地址；重写过的 equals 方法比较的一般是对象的值。
 
-## 为什么重写 equals 方法必须重写 hashCode 方法？
+## 为什么重写 equals 方法必须重写 hashcode 方法？
 
 默认的 hashCode 方法会利用对象的地址来计算 hashcode 值，不同对象的 hashcode 值是不一样的。 
 
@@ -176,7 +183,7 @@ StringBuilder 类是 JDK5.0 引入的 StringBuffer 改进版，它的效率高�
 - `setCharAt(int i, char c)`：将第 i 个代码单元设置为 c
 - `toString()`：构建字符串
 
-## Xmx 和 Xms如何使用？
+## Xmx 和 Xms 如何使用？
 
 Xmx 和 Xms 是 Java 虚拟机启动时的可选参数。
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import functools
 
 
@@ -24,14 +23,19 @@ def add_space_at_boundry(prefix, next_char):
         return prefix + next_char
 
 
-def main():
-    base_dir = "."
+def get_md_files_list(base_dir="."):
     md_files = []
 
     for root, _, files in os.walk(base_dir):
         for name in files:
             if os.path.splitext(name)[1] == ".md":
                 md_files.append(os.path.join(root, name))
+
+    return md_files
+
+
+def main():
+    md_files = get_md_files_list()
 
     for md_file in md_files:
         infile = open(md_file, 'r', encoding="UTF-8")
@@ -44,7 +48,7 @@ def main():
         with open(md_file, 'w', encoding="UTF-8") as outfile:
             outfile.write(outstr)
 
-    print("All done.")
+    print("Add space done!\n")
 
 
 if __name__ == '__main__':
