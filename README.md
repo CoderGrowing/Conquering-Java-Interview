@@ -389,6 +389,17 @@ synchronized 语句需要一个对象的引用；随后会尝试在该对象的�
 
 如果是实例方法，synchronized 锁的是调用该方法的实例（即方法体执行期间的 this）相关联的管程。如果是静态方法，锁的是定义该方法的类所对应的 Class 对象。
 
+## synchronized与Lock的区别：
+
+synchronized作用在方法上，使用的锁是this，即当前对象；作用在代码块上，使用的锁可以是任何对象；作用在静态函数上，使用的锁是字节码对象，即类名.class。
+
+| 类别     | synchronized                                                 | Lock                                                         |
+| -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 存在层次 | Java的关键字，在jvm层面上                                    | 是一个接口                                                   |
+| 锁的释放 | 1、以获取锁的线程执行完同步代码，释放锁 2、线程执行发生异常，jvm会让线程释放锁 | 在finally中必须释放锁，不然容易造成线程死锁                  |
+| 锁的获取 | 假设A线程获得锁，B线程等待。如果A线程阻塞，B线程会一直等待   | 分情况而定，Lock有多个锁获取的方式，具体下面会说道，大致就是可以尝试获得锁，线程可以不用一直等待 |
+| 锁类型   | 可重入 不可中断 非公平                                       | 可重入 可判断 可公平（两者皆可）                             |
+
 # 三、JVM
 
 ## Xmx 和 Xms 如何使用？
@@ -499,9 +510,60 @@ Java 中可以充当 GC Roots 的对象包括以下几种：
 
 **自定义加载器**
 
+自定义类加载器，需要继承ClassLoader类，并实现findClass方法。
+
 ###     双亲委派模型
 
 如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把请求委托给父加载器去完成，依次向上，因此，所有的类加载请求都应该传递到顶层的启动类加载器中，只有当父加载器在它的搜索范围中没有找到所需的类时，即无法完成加载，子加载器才会尝试自己去加载。
+
+```java
+//双亲委派模型的工作过程源码
+protected synchronized Class<?> loadClass(String name, boolean resolve)
+throws ClassNotFoundException
+{
+// First, check if the class has already been loaded
+Class c = findLoadedClass(name);
+if (c == null) {
+try {
+if (parent != null) {
+c = parent.loadClass(name, false);
+} else {
+c = findBootstrapClassOrNull(name);
+}
+} catch (ClassNotFoundException e) {
+// ClassNotFoundException thrown if class not found
+// from the non-null parent class loader
+//父类加载器无法完成类加载请求
+}
+if (c == null) {
+// If still not found, then invoke findClass in order to find the class
+//子加载器进行类加载 
+c = findClass(name);
+}
+}
+if (resolve) {//判断是否需要链接过程，参数传入
+resolveClass(c);
+}
+return c;
+}
+
+```
+
+**具体过程：**
+
+（1）当前类加载器从自己已经加载的类中查询是否此类已经加载，如果已经加载则直接返回原来已经加载的类。 
+
+（2）如果没有找到，就去委托父类加载器去加载。父类加载器也会采用同样的策略，查看自己已经加载过的类中是否包含这个类，有就返回，没有就委托父类的父类去加载，一直到启动类加载器。因为如果父加载器为空了，就代表使用启动类加载器作为父加载器去加载。 
+
+（3）如果启动类加载器加载失败，会使用拓展类加载器来尝试加载，继续失败则会使用AppClassLoader来加载，继续失败则会抛出一个异常ClassNotFoundException，**然后再调用当前加载器的findClass()方法进行加载。** 
+
+**双亲委派模型的好处：** 
+
+（1）主要是为了安全性，避免用户自己编写的类动态替换 Java的一些核心类，比如 String。 
+
+（2）同时也避免了类的重复加载，因为 JVM中区分不同类，不仅仅是根据类名，相同的 class文件被不同的 ClassLoader加载就是不同的两个类。 
+
+
 
 ## Java 内存模型
 
