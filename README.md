@@ -17,12 +17,11 @@
     * [什么是多态？如何体现多态？](#什么是多态如何体现多态)
     * [NIO、BIO、AIO](#niobioaio)
     * [反射](#反射)
-    * [深拷贝和浅拷贝](#深拷贝和浅拷贝)
+    * [深拷贝和浅拷贝的区别？](#深拷贝和浅拷贝的区别)
 * [二、JMM 与并发](#二jmm-与并发)
-    * [什么是线程安全](#什么是线程安全)
+    * [什么是线程安全？](#什么是线程安全)
     * [volatile 变量是什么？](#volatile-变量是什么)
     * [synchronized](#synchronized)
-    * [synchronized 与 Lock 的区别：](#synchronized-与-lock-的区别：)
 * [三、JVM](#三jvm)
     * [Xmx 和 Xms 如何使用？](#xmx-和-xms-如何使用)
     * [可达性分析算法](#可达性分析算法)
@@ -51,12 +50,17 @@
     * [索引](#索引)
         * [聚集索引与非聚集索引](#聚集索引与非聚集索引)
         * [索引失效](#索引失效)
-        * [MySQL 引擎](#mysql-引擎)
-        * [Redis](#redis)
-        * [缓存机制](#缓存机制)
+    * [InnoDB 和 MyISAM 对比](#innodb-和-myisam-对比)
+    * [Redis](#redis)
+    * [缓存机制](#缓存机制)
     * [乐观锁和悲观锁](#乐观锁和悲观锁)
+        * [悲观锁](#悲观锁)
+        * [乐观锁](#乐观锁)
+        * [适用场景](#适用场景)
     * [B 树和 B+ 树](#b-树和-b+-树)
 * [六、算法](#六算法)
+    * [排序](#排序)
+        * [快速排序](#快速排序)
 * [七、其他](#七其他)
 * [操作系统](#操作系统)
     * [进程和线程的区别？](#进程和线程的区别)
@@ -358,7 +362,7 @@ Connection conn = Class.forName("conn").newInstance();
 
 另外，最常使用反射的就是各类基础框架，比如 Spring、Hibernate 就大量使用了反射。框架是给调用者提供服务的，但框架怎么知道调用者的类信息、方法信息呢？通过反射。反射同样是动态代理、AOP 等的基础。
 
-## 深拷贝和浅拷贝
+## 深拷贝和浅拷贝的区别？
 
 - 浅拷贝：对于基本数据类型，拷贝它的值，对于引用数据类型（对象），拷贝它的引用
 - 深拷贝：对于基本数据类型和引用数据类型都是拷贝值
@@ -366,11 +370,11 @@ Connection conn = Class.forName("conn").newInstance();
 **如何实现深拷贝**
 
 - 序列化：将一个对象序列化，再反序列化回来，得到的就是一个全新的对象
-- 覆盖实现 clone() 方法：在自定义的 clone() 方法中对引用数据类型在进行一次拷贝即可
+- 覆盖实现 clone() 方法：在自定义的 clone() 方法中对引用数据类型再进行一次拷贝即可
 
 # 二、JMM 与并发
 
-## 什么是线程安全
+## 什么是线程安全？
 
 > 当多个线程访问一个对象时，如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要额外的同步，或者在调用方进行任何其他的协调操作，调用这个对象的行为都可以获得正确的结果，那么这个对象是线程安全的。
 
@@ -380,9 +384,10 @@ Connection conn = Class.forName("conn").newInstance();
 
 一旦一个共享变量（类的成员变量、类的静态成员变量）被 volatile 修饰之后，就具备了两层语义：
 
-1. 保证了不同线程对这个变量进行操作时的可见性，即一个线程修改了某个变量的值，这新值对其他线程来说是立即可见的。
+1. 保证了不同线程对这个变量进行操作时的**可见性**，即一个线程修改了某个变量的值，这新值对其他线程来说是立即可见的。
 2. 禁止进行指令重排序。
-3. **volatile**变量不保证原子性
+
+需要注意的是 volatile 变量不保证原子性
 
 ## synchronized
 
@@ -390,7 +395,7 @@ synchronized 语句需要一个对象的引用；随后会尝试在该对象的�
 
 如果是实例方法，synchronized 锁的是调用该方法的实例（即方法体执行期间的 this）相关联的管程。如果是静态方法，锁的是定义该方法的类所对应的 Class 对象。
 
-## synchronized 与 Lock 的区别：
+**synchronized 与 Lock 的区别**
 
 synchronized 作用在方法上，使用的锁是 this，即当前对象；作用在代码块上，使用的锁可以是任何对象；作用在静态函数上，使用的锁是字节码对象，即类名 .class。
 
@@ -522,32 +527,31 @@ Java 中可以充当 GC Roots 的对象包括以下几种：
 ```java
 // 双亲委派模型的工作过程源码
 protected synchronized Class<?> loadClass(String name, boolean resolve)
-throws ClassNotFoundException
-{
+        throws ClassNotFoundException {
 // First, check if the class has already been loaded
-Class c = findLoadedClass(name);
-if (c == null) {
-try {
-if (parent != null) {
-c = parent.loadClass(name, false);
-} else {
-c = findBootstrapClassOrNull(name);
-}
-} catch (ClassNotFoundException e) {
-// ClassNotFoundException thrown if class not found
-// from the non-null parent class loader
-// 父类加载器无法完成类加载请求
-}
-if (c == null) {
-// If still not found, then invoke findClass in order to find the class
-// 子加载器进行类加载 
-c = findClass(name);
-}
-}
-if (resolve) {// 判断是否需要链接过程，参数传入
-resolveClass(c);
-}
-return c;
+    Class c = findLoadedClass(name);
+    if (c == null) {
+        try {
+            if (parent != null) {
+                c = parent.loadClass(name, false);
+            } else {
+                c = findBootstrapClassOrNull(name);
+            }
+        } catch (ClassNotFoundException e) {
+        // ClassNotFoundException thrown if class not found
+        // from the non-null parent class loader
+        // 父类加载器无法完成类加载请求
+        }
+        // If still not found, then invoke findClass in order to find the class
+        // 子加载器进行类加载
+        if (c == null) {
+            c = findClass(name);
+        }
+    }
+    if (resolve) {	// 判断是否需要链接过程，参数传入
+        resolveClass(c);
+    }
+    return c;
 }
 
 ```
@@ -566,8 +570,6 @@ return c;
 
 （2）同时也避免了类的重复加载，因为 JVM 中区分不同类，不仅仅是根据类名，相同的 class 文件被不同的 ClassLoader 加载就是不同的两个类。 
 
-
-
 ## Java 内存模型
 
 # 四、框架 
@@ -576,13 +578,11 @@ return c;
 
 ## Spring MVC 的请求流程
 
-用户在 Web 浏览器中点击 URL 或者提交表单的时候，就开始了请求的工作。
-
-请求的第一站是 DispatcherServlet。DispatcherServlet 在此充当一个前端控制器（front controller）的角色。所有的请求都经由 DispatcherServlet，它将请求转发给具体的控制器来处理。
+请求的第一站是 DispatcherServlet。DispatcherServlet 在此充当一个前端控制器（front controller）[^1]的角色。所有的请求都将经由 DispatcherServlet，它负责将请求转发给具体的控制器来处理。
 
 控制器是一个用于处理请求的 Spring 组件，通常存在多个控制器，所以 DispatcherServlet 需要知道将请求发送给哪个控制器。DispatcherServlet 会去查询处理器映射（handler mapping），来确定下一站在哪。处理器映射会根据请求携带的 URL 来决定请求应该交给哪个控制器来处理。
 
-找到了合适的控制器后，DispatcherServlet 会将请求发送给控制器。控制器完成处理后，通常会产生一些信息，这些信息被称为模型（model）。信息的可视化处理需要发送给一个视图（view），通常是 JSP。
+找到了合适的控制器后，DispatcherServlet 会将请求发送给控制器。控制器完成处理后，通常会产生一些信息，这些信息被称为模型（model）。信息的可视化处理需要发送给一个视图（view），如 JSP 等。
 
 控制器将模型数据打包，并标识出用于渲染输出的视图名，然后将其发送给 DispatcherServlet。DispatcherServlet 接收到后，使用视图解析器（view resolver）将逻辑的视图名匹配为一个特定的视图实现。最后，视图将模型数据渲染，输出，并返回给客户端。
 
@@ -596,41 +596,139 @@ return c;
 
 ### 索引失效
 
-### MySQL 引擎
+## InnoDB 和 MyISAM 对比
 
-### Redis
+自 MySQL 5.5.5 开始 InnoDB 就成了 MySQL 的默认引擎。它提供了外键、事务支持等高级数据库特性。而 MyISAM 则是为性能设计的，不支持外键、事务等功能，但 MyISAM 在执行查询操作时性能要优于 InnoDB。下面是详细对比：
+
+1. InnoDB 支持事务（transaction），MyISAM 不支持
+2. InnoDB 支持外键，MyISAM 不支持
+3. InnoDB 支持行级别的锁，MyISAM 只能对表加锁
+4. MyISAM 支持全文检索（fulltext search），而 InnoDB 5.6.4 之前的版本不支持（5.6.4 后支持）
+5. MyISAM 用一个变量保存了整个表的行数，执行 select count(*) from table 时很快，而 InnoDB 不保存表的具体行数，执行需要全表扫描
+6. InnoDB 是聚集索引，数据文件是和索引绑在一起的，必须要有主键。而 MyISAM 是非聚集索引，数据文件是分离的，索引保存的是数据文件的指针。
+
+总结就是，通常情况下，特别是 update、insert 等写入操作多时，用 InnoDB；查询操作非常多时用 MyISAM。
+
+## Redis
 
  1. redis 多机部署时，如何保证数据一致？
 
     主从复制，读写分离。主数据库（master） 可以进行读写操作，从数据库（slave） 一般时只读的，并接收主数据库同步过来的数据，一个主可以有多个从，一个从只能有一个主。
 
-	2. 一致性
+2. 一致性
 
-    一致性可以分为强一致性和弱一致性。
+   一致性可以分为强一致性和弱一致性。
 
-    强一致性可以理解为在任意时刻， 所有节点中的数据是一样的。 同一时间点，你在节点 A 中获取到的值与在节点 B 中获取到的值应该都是一样的。 
+   强一致性可以理解为在任意时刻， 所有节点中的数据是一样的。 同一时间点，你在节点 A 中获取到的值与在节点 B 中获取到的值应该都是一样的。 
 
-    弱一致性包含很多种不同的实现， 最终一致性 是其中的一种实现。所谓最终一致性，就是不保证在任意时刻任意节点上的同一份数据都是相同的， 但是在一段时间后，节点间的数据会最终达到一致状态。
+   弱一致性包含很多种不同的实现， 最终一致性 是其中的一种实现。所谓最终一致性，就是不保证在任意时刻任意节点上的同一份数据都是相同的， 但是在一段时间后，节点间的数据会最终达到一致状态。
 
-     对于最终一致性最好的例子就是 DNS 系统，由于 DNS 多级缓存的实现，所以修改 DNS 记录后不会在全球所有 DNS 服务节点生效，需要等待 DNS 服务器缓存过期后向源服务器更新新的记录才能实现。 
+    对于最终一致性最好的例子就是 DNS 系统，由于 DNS 多级缓存的实现，所以修改 DNS 记录后不会在全球所有 DNS 服务节点生效，需要等待 DNS 服务器缓存过期后向源服务器更新新的记录才能实现。 
 
-	3. 
+3. RDB 和 AOF
 
-RDB 和 AOF。
+   RDB：即在指定的时间间隔内将内存中的数据集快照写入磁盘。 是默认的持久化方式，这种方式就是将内存中的数据以快照方式写入到二进制文件中，默认的文件名为 dump.rdb。
 
-RDB：即在指定的时间间隔内将内存中的数据集快照写入磁盘。 是默认的持久化方式，这种方式就是将内存中的数据以快照方式写入到二进制文件中，默认的文件名为 dump.rdb。
+   AOF：redis 会将每一个收到的写命令都通过 write 函数追加到文件中 ( 默认是 appendonly.aof)。 当 redis 重启时会通过重新执行文件中保存的写命令来在内存中重建整个数据库的内容。 
 
-AOF：redis 会将每一个收到的写命令都通过 write 函数追加到文件中 ( 默认是 appendonly.aof)。 当 redis 重启时会通过重新执行文件中保存的写命令来在内存中重建整个数据库的内容。 
-
-
-
-### 缓存机制
+## 缓存机制
 
 ## 乐观锁和悲观锁
+
+### 悲观锁
+
+顾名思义悲观锁是基于一种悲观的态度类来防止一切的数据冲突。它是以一种预防的姿态在修改数据之前把数据锁住然后再对数据进行读写，在它释放锁之前任何人都不能对其数据进行操作。一般数据库本身锁的机制都是基于悲观锁的机制实现的 
+
+**特点**：可以完全保证数据的独占性和正确性，但因其加锁释放锁的过程会造成消耗，所以性能不高。
+
+**手动加悲观锁**：
+
+读锁： `LOCK tables test_db  read`
+
+写锁：`LOCK tables test_db  WRITE`
+
+释放锁 `UNLOCK TABLES;`
+
+### 乐观锁
+
+乐观锁是对于数据冲突保持一种乐观态度，操作数据时不会对数据锁定（这使得多个任务可以并行的对数据进行操作），只有到数据提交的时候才通过一种机制来验证数据是否存在冲突 ( 一般实现方式是通过加版本号然后进行比对比对的方式实现 )。
+
+**特点**：乐观锁是一种并发类型的锁，本身不对数据进行加锁通过业务实现锁的功能，不对数据进行加锁就意味着允许多个请求同时访问数据，这种方式大大的提高了并发数据请求的性能。
+
+### 适用场景
+
+**悲观锁**：比较适合写入操作比较频繁的场景，如果出现大量的读取操作，每次读取的时候都会进行加锁，这样会增加大量的锁的开销，降低了系统的吞吐量。
+
+**乐观锁**：比较适合读取操作比较频繁的场景，如果出现大量的写入操作，数据发生冲突的可能性就会增大，为了保证数据的一致性，应用层需要不断的重新获取数据，这样会增加大量的查询操作，降低了系统的吞吐量。
+
+另外，可以从应用需求的角度来考虑使用什么锁：
+
+1. 响应速度：如果需要非常高的响应速度，建议采用乐观锁方案，成功就执行，不成功就失败，不需要等待其他并发去释放锁
+2. 冲突频率：如果冲突频率非常高，建议采用悲观锁，保证成功率，如果冲突频率大，乐观锁会需要多次重试才能成功，代价比较大
+3. 重试代价：如果重试代价大，建议采用悲观锁
 
 ## B 树和 B+ 树
 
 # 六、算法
+
+## 排序
+
+### 快速排序
+
+快速排序可能是应用最为广泛的排序算法。它实现简单、不依赖输入数据。
+
+**思路**
+
+快速排序是一种分治的排序算法。先将一个数组分为两个子数组，再将两部分独立的排序。快速排序的关键在于对数组的切分。切分过程使数组满足三个条件：
+
+- 对于某个 j，a[j]已经排定
+- a[lo]到 a[j-1]中的所有元素都不大于 a[j]
+- a[j+1]到 a[hi]中的所有元素都不小于 a[j]
+
+通过递归调用这个过程使得排序完成。
+
+**实现**
+
+```java
+public class Quick {
+    public static void sort(Comparable[] a) {
+        StdRandom.shuffle(a);       // 打乱，不依赖输入
+        sort(a, 0, a.length-1);
+    }
+
+    private static void sort(Comparable[] a, int lo, int hi) {
+        if (hi < lo)    return;
+        int j = partition(a, lo, hi);       // j 为切分点
+        sort(a, lo, j-1);
+        sort(a, j+1, hi);
+    }
+
+    private static int partition(Comparable[] a, int lo, int hi) {
+        int i = lo, j = hi+1;    // 左右扫描指针
+        Comparable v = a[lo];
+
+        while (true) {
+            // 从左向右扫描，找到一个比 v 大的元素
+            while (BaseSort.less(a[++i], v))
+                if (i == hi)
+                    break;
+            // 从右向左扫描，找出一个比 v 小的元素
+            while (BaseSort.less(v, a[--j]))
+                if (j == lo)
+                    break;
+            // 指针相遇
+            if (i >= j)
+                break;
+            BaseSort.exchange(a, i, j);
+        }
+        BaseSort.exchange(a, lo, j);
+        // 返回切分点
+        return j;
+    }
+}
+```
+
+
 
 # 七、其他
 
@@ -652,7 +750,7 @@ AOF：redis 会将每一个收到的写命令都通过 write 函数追加到文�
 
 - GET 也可以用来提交信息，但提交后信息的内容会显示在 URL 后缀上，不用来提交敏感数据
 - POST 有一个消息体，GET 只有请求头
-- GET 幂等（还有 PUT、HEAD)，POST 不幂等（幂等，反复做一件事情而没有副作用）
+- GET 幂等（还有 PUT、HEAD)，POST 不幂等[^n]
 
 ## HTTP 1.0、1.1、2.0 的区别？
 
@@ -698,3 +796,8 @@ HTTP 2.0 使用了多路复用的技术，做到同一个连接并发处理多�
 **服务器推送**
 
 HTTP 2.0 引入了服务器推送，即服务端向客户端发送比客户端请求更多的数据。这允许服务器直接提供浏览器渲染页面所需资源，而无须浏览器在收到、解析页面后再提起一轮请求，节约了加载时间。 
+
+
+
+[^1]: [Front controller](https://www.wikiwand.com/en/Front_controller) 
+[^n]: 幂等，反复做一件事情而没有副作用，参见维基百科：[idempotence](https://www.wikiwand.com/en/Idempotence)
